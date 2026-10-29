@@ -1,8 +1,10 @@
 package restaurantrush.control;
 
+import restaurantrush.customer.CriticCustomer;
 import restaurantrush.entity.Dish;
 import restaurantrush.entity.Menu;
 import restaurantrush.customer.RegularCustomer;
+import restaurantrush.customer.VIPCustomer;
 
 /**
  * Fixed parameters of one game. {@link #baseSetting()} is the required,
@@ -27,6 +29,7 @@ public class GameConfig {
     /**
      * 18 turns, 2 tables, six arrivals, the three-dish menu and the standard
      * objective.
+     * The arrivals on turns 4 and 7 are a Critic and a VIP in place of two regulars.
      */
     public static GameConfig baseSetting() {
         Menu menu = new Menu();
@@ -36,8 +39,8 @@ public class GameConfig {
 
         ArrivalSchedule schedule = new ArrivalSchedule()
                 .add(1, RegularCustomer::new)
-                .add(4, RegularCustomer::new)
-                .add(7, RegularCustomer::new)
+                .add(4, CriticCustomer::new)
+                .add(7, VIPCustomer::new)
                 .add(10, RegularCustomer::new)
                 .add(13, RegularCustomer::new)
                 .add(16, RegularCustomer::new);
