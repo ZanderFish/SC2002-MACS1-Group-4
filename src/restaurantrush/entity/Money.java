@@ -13,4 +13,9 @@ public final class Money {
     public static String format(long cents) {
         return String.format("$%d.%02d", cents / 100, cents % 100);
     }
+
+    /** Returns percent% of an amount, rounded to the nearest cent, e.g. percentOf(1500, 90) = 1350. */
+    public static int percentOf(int cents, int percent) {
+        return (int) ((cents * (long) percent + 50) / 100);
+    }
 }
