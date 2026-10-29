@@ -32,7 +32,7 @@ public class ConsoleUI {
 
     public void run() {
         System.out.println(LINE);
-        System.out.println("  RESTAURANT RUSH  -  SC2002 turn-based restaurant manager (Stage 1)");
+        System.out.println("  RESTAURANT RUSH  -  SC2002 turn-based restaurant manager (Stage 2)");
         System.out.println(LINE);
         while (true) {
             System.out.println();
@@ -212,6 +212,10 @@ public class ConsoleUI {
         System.out.println("   at 0 they leave without paying.");
         System.out
                 .println(" - Customers choose their own food: C1 takes menu item 1, C2 item 2, and so on (wrapping).");
+        System.out.println("Customer types:");
+        System.out.println("   Regular: -8 satisfaction per waiting turn, pays full price.");
+        System.out.println("   VIP    : -5 per waiting turn, gets 10% off the bill.");
+        System.out.println("   Critic : -12 per waiting turn, pays full price, always orders the most expensive item.");
         System.out.println("Menu:");
         for (MenuItem item : config.getMenu().getItems()) {
             System.out.println("   " + item);
