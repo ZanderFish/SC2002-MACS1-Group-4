@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.OptionalInt;
 
 import restaurantrush.entity.ActionResult;
-import restaurantrush.customer.Customer;
+import restaurantrush.entity.HappyHour;
 import restaurantrush.entity.Restaurant;
+import restaurantrush.customer.Customer;
 import restaurantrush.staff.Cashier;
 import restaurantrush.staff.Chef;
+import restaurantrush.staff.Host;
 import restaurantrush.staff.Staff;
 import restaurantrush.staff.Waiter;
 
@@ -23,6 +25,8 @@ public class GameController {
 
     private final GameConfig config;
     private final Restaurant restaurant;
+    private final HappyHour happyHour = new HappyHour();
+    private final Host host = new Host("Akshith");
     private final Waiter waiter = new Waiter("Shi Jye");
     private final Chef chef = new Chef("Zhitong");
     private final Cashier cashier = new Cashier("Zander");
@@ -34,7 +38,7 @@ public class GameController {
     public GameController(GameConfig config) {
         this.config = config;
         this.restaurant = new Restaurant(config.getTableCount());
-        this.staff = Arrays.asList(waiter, chef, cashier);
+        this.staff = Arrays.asList(host, waiter, chef, cashier);
     }
 
     // ----- Step 1: start of turn and arrivals -----
@@ -53,16 +57,74 @@ public class GameController {
             log("Arrival: " + customer.getLabel() + " joins the waiting queue with satisfaction "
                     + customer.getSatisfaction() + ".");
         });
+        if (happyHour.isActive()) {
+            applyHappyHourRecovery();
+        }
     }
 
-    // ----- Steps 2 and 3: manager choices; the Waiter acts before the Chef -----
+    // ----- Happy Hour: may be switched on once, at the start of a turn -----
+
+    public ActionResult activateHappyHour() {
+        if (!happyHour.isAvailable()) {
+            return ActionResult.failure("Happy Hour has already been used; it can be activated once per game.");
+        }
+        for (Staff member : staff) {
+            if (member.hasActed()) {
+                return ActionResult.failure("Happy Hour can only be switched on at the start of a turn.");
+            }
+        }
+        happyHour.activate();
+        applyHappyHourRecovery();
+        return ActionResult.success("Happy Hour is ON for this turn and the next: orders taken get "
+                + (100 - HappyHour.BILL_PERCENT) + "% off.");
+    }
+
+    private void applyHappyHourRecovery() {
+        List<String> changes = new ArrayList<>();
+        for (Customer customer : restaurant.getCustomers()) {
+            if (customer.isWaitingForService()) {
+                int before = customer.getSatisfaction();
+                customer.recover(HappyHour.RECOVERY);
+                changes.add("C" + customer.getId() + " " + before + "->" + customer.getSatisfaction());
+            }
+        }
+        if (!changes.isEmpty()) {
+            log("Happy Hour recovery (+" + HappyHour.RECOVERY + "): " + String.join(", ", changes));
+        }
+    }
+
+    public boolean isHappyHourAvailable() {
+        return happyHour.isAvailable();
+    }
+
+    public boolean isHappyHourActive() {
+        return happyHour.isActive();
+    }
+
+    public int getHappyHourTurnsLeft() {
+        return happyHour.getRemainingTurns();
+    }
+
+    // ----- Steps 2 and 3: manager choices; Host, then Waiter, then Chef -----
+
+    public ActionResult hostSeat(int customerId) {
+        return host.seat(restaurant, customerId);
+    }
+
+    public ActionResult hostWait() {
+        return host.idle();
+    }
+
+    public boolean hostHasPossibleTask() {
+        return host.hasPossibleTask(restaurant, turn);
+    }
 
     public ActionResult waiterSeat(int customerId) {
         return waiter.seat(restaurant, customerId);
     }
 
     public ActionResult waiterTakeOrder(int customerId) {
-        return waiter.takeOrder(restaurant, customerId, config.getMenu(), turn);
+        return waiter.takeOrder(restaurant, customerId, config.getMenu(), happyHour, turn);
     }
 
     public ActionResult waiterServe(int orderId) {
@@ -95,6 +157,9 @@ public class GameController {
     // ----- Steps 4 and 5: eating, payment, waiting and abandonment -----
 
     public void endTurn() {
+        if (!host.hasActed()) {
+            host.idle();
+        }
         if (!waiter.hasActed()) {
             waiter.idle();
         }
@@ -104,6 +169,7 @@ public class GameController {
         handleEating();
         handlePayment();
         handleWaiting();
+        happyHour.endTurn();
     }
 
     private void handleEating() {

@@ -1,70 +1,82 @@
-# Stage 2 reproducible VICTORY run (base setting with a Critic on turn 4 and a VIP on turn 7).
-# Orders: C1 Regular Salad, C2 Critic Pasta (most expensive item), C3 VIP Pasta ($16.20 after 10% off),
-#         C4 Regular Salad, C5 Regular Burger, C6 Regular Pasta.
-# Turns where a staff member has no possible task are skipped automatically and need no input.
+# Stage 3 reproducible VICTORY run (base setting: Critic on turn 4, VIP on turn 7, Host, combos, Happy Hour).
+# Menu order: Salad, Burger, Pasta, Salad + Burger Combo ($21.60, 2 units), Salad + Pasta Combo ($24.30, 3 units).
+# Orders: C1 Salad, C2 Critic -> Salad + Pasta Combo (most expensive), C3 VIP Pasta,
+#         C4 Salad + Burger Combo, C5 Salad + Pasta Combo, C6 Salad.
+# Prompt order each turn: Happy Hour (until used) -> Host -> Waiter -> Chef.
+# Staff with no possible task are skipped automatically and need no input.
 # Main menu: play
 1
-# T1  Waiter seats C1
+# T1  HH no; Host seats C1; Waiter takes C1's order (Salad); Chef cooks #1 -> READY
+0
 1
-1
-# T2  Waiter takes C1's order (Salad); Chef cooks order #1 -> READY
 2
 1
 1
-# T3  Invalid on purpose: serve order #2 (does not exist) -> explained, choose again; then serve #1
-3
-2
+# T2  HH no; Waiter serves #1
+0
 3
 1
-# T4  Critic C2 arrives; Waiter seats C2 straight away (critics lose 12 per waiting turn)
+# T3  HH no; nothing else to do
+0
+# T4  Critic C2 arrives. HH no; Host seats C2; Waiter takes order (Salad + Pasta Combo, 3 units); Chef 1/3.  C1 pays
+0
+2
+2
+2
+2
+# T5  HH no; Chef 2/3
+0
+2
+# T6  HH no; Chef 3/3 -> READY
+0
+2
+# T7  VIP C3 arrives. Switch Happy Hour ON: waiting customers recover 15 (the Critic 64 -> 79).
+#     Host seats C3; Waiter serves the Critic's combo
 1
-2
-# T5  Waiter takes C2's order: the Critic ignores the rotation and orders Pasta; Chef unit 1/2.  C1 pays
-2
-2
-2
-# T6  Waiter has nothing to do (auto Wait); Chef unit 2/2 -> READY
-2
-# T7  VIP C3 arrives. Constrained Waiter: serve the impatient Critic first; the patient VIP waits
+3
 3
 2
-# T8  Waiter seats C3
-1
-3
-# T9  Waiter takes C3's order (Pasta, $16.20 with VIP discount); Chef unit 1/2.  Critic pays
+# T8  Happy Hour 2nd turn (recovery again). Waiter takes C3's order: Pasta $18 x 0.9 x 0.8 = $12.96; Chef 1/2
 2
 3
 3
-# T10 C4 arrives; Waiter seats C4 at the free table; Chef finishes #3 -> READY
-1
+# T9  Chef 2/2 -> READY.  Critic pays
+3
+# T10 C4 arrives. Host seats C4; Waiter serves #3
 4
 3
-# T11 Waiter serves #3 (Chef idle: kitchen empty)
 3
-3
-# T12 Waiter takes C4's order (Salad); Chef cooks #4 -> READY
+# T11 Waiter takes C4's order (Salad + Burger Combo); Chef 1/2
 2
 4
 4
-# T13 C5 arrives; Waiter serves #4.  VIP pays
-3
+# T12 Chef 2/2 -> READY.  VIP pays
 4
-# T14 Waiter seats C5
-1
+# T13 C5 arrives. Host seats C5. Waiter takes C5's 3-unit combo order FIRST so it can be paid by turn 18;
+#     C4's READY combo waits one more turn. Chef 1/3
 5
-# T15 Waiter takes C5's order (Burger); Chef cooks #5 -> READY.  C4 pays
 2
 5
 5
-# T16 C6 arrives; Waiter serves #5
+# T14 Waiter serves #4; Chef 2/3
 3
+4
 5
-# T17 Waiter seats C6
+# T15 Chef 3/3 -> READY
+5
+# T16 C6 arrives but both tables are taken (Host skipped). Invalid on purpose: Waiter tries to seat C6 ->
+#     explained, choose again; then Waiter serves #5.  C4 pays and frees a table
 1
 6
-# T18 Waiter takes C6's order (Pasta); Chef unit 1/2.  C5 pays
+3
+5
+# T17 Host seats C6; Waiter takes C6's order (Salad); Chef cooks #6 -> READY
+6
 2
 6
+6
+# T18 Waiter serves #6.  C5 pays
+3
 6
 # Main menu: quit
 0

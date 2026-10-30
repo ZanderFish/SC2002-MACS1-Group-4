@@ -5,6 +5,7 @@ import java.util.Optional;
 import restaurantrush.entity.ActionResult;
 import restaurantrush.customer.Customer;
 import restaurantrush.customer.CustomerStatus;
+import restaurantrush.entity.HappyHour;
 import restaurantrush.entity.Menu;
 import restaurantrush.entity.MenuItem;
 import restaurantrush.entity.Money;
@@ -35,8 +36,11 @@ public class Waiter extends Staff {
         return result;
     }
 
-    /** The customer chooses their own food; the manager only decides whose order to take. */
-    public ActionResult takeOrder(Restaurant restaurant, int customerId, Menu menu, int turn) {
+    /**
+     * The customer chooses their own food; the manager only decides whose order to take.
+     * The bill is fixed now: the customer's own discount first, then Happy Hour if it is active.
+     */
+    public ActionResult takeOrder(Restaurant restaurant, int customerId, Menu menu, HappyHour happyHour, int turn) {
         if (hasActed()) {
             return alreadyActed();
         }
@@ -50,11 +54,12 @@ public class Waiter extends Staff {
                     + customer.getStatus().getLabel() + "). Only seated customers who have not ordered can order.");
         }
         MenuItem item = customer.chooseItem(menu);
-        int bill = customer.calculateBill(item);
+        int bill = happyHour.applyTo(customer.calculateBill(item));
         Order order = restaurant.placeOrder(customer, item, bill, turn);
         completeTask();
         return ActionResult.success(customer.getLabel() + " orders " + item.getName() + " - bill "
-                + Money.format(bill) + ". Order #" + order.getId() + " sent to the kitchen.");
+                + Money.format(bill) + (happyHour.isActive() ? " (Happy Hour price)" : "")
+                + ". Order #" + order.getId() + " sent to the kitchen.");
     }
 
     public ActionResult serve(Restaurant restaurant, int orderId, int turn) {
