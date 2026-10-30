@@ -4,7 +4,6 @@ import restaurantrush.entity.Menu;
 import restaurantrush.entity.MenuItem;
 import restaurantrush.entity.Order;
 import restaurantrush.entity.Table;
-
 /**
  * A guest of the restaurant. It holds the guest's satisfaction and keeps track
  * of where the guest is in the service flow. Subclasses decide how quickly
@@ -106,6 +105,11 @@ public abstract class Customer {
         if (status.isWaitingForService()) {
             satisfaction = Math.max(0, satisfaction - getSatisfactionLoss());
         }
+    }
+
+    /** Restores satisfaction, never above the maximum (used by Happy Hour). */
+    public void recover(int amount) {
+        satisfaction = Math.min(MAX_SATISFACTION, satisfaction + amount);
     }
 
     public void leave() {
