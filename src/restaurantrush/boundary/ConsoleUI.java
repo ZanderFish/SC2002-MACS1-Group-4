@@ -32,7 +32,7 @@ public class ConsoleUI {
 
     public void run() {
         System.out.println(LINE);
-        System.out.println("  RESTAURANT RUSH  -  SC2002 turn-based restaurant manager (Stage 2)");
+        System.out.println("  RESTAURANT RUSH  -  SC2002 turn-based restaurant manager (Stage 3)");
         System.out.println(LINE);
         while (true) {
             System.out.println();
@@ -61,6 +61,8 @@ public class ConsoleUI {
             System.out.println(LINE);
             printEvents(game.drainEvents());
             printStatus(game);
+            happyHourPhase(game);
+            hostPhase(game);
             waiterPhase(game);
             chefPhase(game);
             game.endTurn();
@@ -72,6 +74,35 @@ public class ConsoleUI {
         printFinalResult(game);
     }
 
+    private void happyHourPhase(GameController game) {
+        if (!game.isHappyHourAvailable()) {
+            return;
+        }
+        System.out.println();
+        int choice = input.readInt("Switch on Happy Hour now (once per game, lasts this turn and next)? 1) Yes 0) No", 0, 1);
+        if (choice == 1) {
+            report(game.activateHappyHour());
+            printEvents(game.drainEvents());
+        }
+    }
+
+    private void hostPhase(GameController game) {
+        System.out.println();
+        if (!game.hostHasPossibleTask()) {
+            report(game.hostWait());
+            System.out.println("  (nobody can be seated by the Host)");
+            return;
+        }
+        while (true) {
+            int id = input.readInt("Host: customer number to seat (0 = Wait)", 0, MAX_ID);
+            ActionResult result = id == 0 ? game.hostWait() : game.hostSeat(id);
+            report(result);
+            if (result.isSuccess()) {
+                return;
+            }
+        }
+    }
+
     private void waiterPhase(GameController game) {
         System.out.println();
         if (!game.waiterHasPossibleTask()) {
@@ -80,8 +111,7 @@ public class ConsoleUI {
             return;
         }
         while (true) {
-            System.out.println(
-                    "Waiter task:  1) Seat a queued customer   2) Take an order   3) Serve a READY order   0) Wait");
+            System.out.println("Waiter task:  1) Seat a queued customer   2) Take an order   3) Serve a READY order   0) Wait");
             int choice = input.readInt("Waiter", 0, 3);
             ActionResult result;
             if (choice == 0) {
@@ -89,14 +119,14 @@ public class ConsoleUI {
             } else {
                 String prompt = choice == 1 ? "  Customer number to seat (0 = back)"
                         : choice == 2 ? "  Customer number to take the order from (0 = back)"
-                                : "  Order number to serve (0 = back)";
+                            : "  Order number to serve (0 = back)";
                 int id = input.readInt(prompt, 0, MAX_ID);
                 if (id == 0) {
                     continue;
                 }
                 result = choice == 1 ? game.waiterSeat(id)
                         : choice == 2 ? game.waiterTakeOrder(id)
-                                : game.waiterServe(id);
+                            : game.waiterServe(id);
             }
             report(result);
             if (result.isSuccess()) {
@@ -133,6 +163,7 @@ public class ConsoleUI {
                 score.getServedCount(), score.getUnhappyDepartures());
         OptionalInt next = game.getNextArrivalTurn();
         System.out.println(next.isPresent() ? "Next arrival: turn " + next.getAsInt() : "No more arrivals.");
+        System.out.println("Happy Hour: " + describeHappyHour(game));
 
         System.out.println();
         System.out.println("Waiting queue:");
@@ -171,8 +202,7 @@ public class ConsoleUI {
 
     private void printEndOfTurn(GameController game) {
         Scoreboard score = game.getRestaurant().getScoreboard();
-        System.out.printf(
-                "Served: %d | Unhappy departures: %d | Revenue: %s | Avg satisfaction (paid): %s | Turns used: %d/%d%n",
+        System.out.printf("Served: %d | Unhappy departures: %d | Revenue: %s | Avg satisfaction (paid): %s | Turns used: %d/%d%n",
                 score.getServedCount(), score.getUnhappyDepartures(), Money.format(score.getRevenueCents()),
                 formatAverage(score), game.getTurn(), game.getMaxTurns());
     }
@@ -190,8 +220,7 @@ public class ConsoleUI {
                 Money.format(objective.getMinRevenueCents()), metLabel(objective.isRevenueMet(score)));
         System.out.printf("  Average satisfaction: %-8s target >= %-7d %s%n", formatAverage(score),
                 objective.getMinAverageSatisfaction(), metLabel(objective.isSatisfactionMet(score)));
-        System.out.printf("  Served: %d | Unhappy departures: %d%n", score.getServedCount(),
-                score.getUnhappyDepartures());
+        System.out.printf("  Served: %d | Unhappy departures: %d%n", score.getServedCount(), score.getUnhappyDepartures());
         System.out.println();
         System.out.println(game.isVictory() ? "  *** VICTORY! The restaurant hit every target. ***"
                 : "  *** DEFEAT. At least one target was missed. ***");
@@ -201,21 +230,24 @@ public class ConsoleUI {
     private void printRules(GameConfig config) {
         System.out.println();
         System.out.println("HOW TO PLAY");
-        System.out.println("You are the manager. Each turn you choose one task for the Waiter and one for the Chef.");
-        System.out
-                .println(" - Waiter: seat a queued customer, take a seated customer's order, or serve a READY order.");
+        System.out.println("You are the manager. Each turn you choose one task each for the Host, Waiter and Chef.");
+        System.out.println(" - Host: seats one queued customer per turn, before the Waiter acts.");
+        System.out.println(" - Waiter: seat a queued customer, take a seated customer's order, or serve a READY order.");
         System.out.println(" - Chef: advance one order by one preparation unit (the Waiter acts first).");
         System.out.println(" - Cashier: automatically takes one payment per turn, oldest READY_TO_PAY customer first.");
         System.out.println(" - A dish finished this turn can be served next turn. A served customer eats for one");
         System.out.println("   full turn, becomes READY_TO_PAY, and pays the turn after that.");
         System.out.println(" - Customers waiting for a table or food lose satisfaction at the end of every turn;");
         System.out.println("   at 0 they leave without paying.");
-        System.out
-                .println(" - Customers choose their own food: C1 takes menu item 1, C2 item 2, and so on (wrapping).");
+        System.out.println(" - Customers choose their own food: C1 takes menu item 1, C2 item 2, and so on (wrapping).");
         System.out.println("Customer types:");
         System.out.println("   Regular: -8 satisfaction per waiting turn, pays full price.");
         System.out.println("   VIP    : -5 per waiting turn, gets 10% off the bill.");
         System.out.println("   Critic : -12 per waiting turn, pays full price, always orders the most expensive item.");
+        System.out.println("Combos are two dishes at 90% of their combined price; customers reach them through the");
+        System.out.println("normal rotation, since they are listed after the single dishes.");
+        System.out.println("Happy Hour (once per game, at the start of a turn, lasts 2 turns): orders taken get 20% off");
+        System.out.println("(after any VIP discount), and customers waiting for a table or food recover 15 at turn start.");
         System.out.println("Menu:");
         for (MenuItem item : config.getMenu().getItems()) {
             System.out.println("   " + item);
@@ -241,6 +273,14 @@ public class ConsoleUI {
         return String.format("Order #%d %s %s %d/%d units, bill %s", order.getId(), order.getItem().getName(),
                 order.getStatus(), order.getUnitsDone(), order.getItem().getPrepUnits(),
                 Money.format(order.getBillCents()));
+    }
+
+    private String describeHappyHour(GameController game) {
+        if (game.isHappyHourActive()) {
+            int left = game.getHappyHourTurnsLeft();
+            return "ACTIVE - " + left + " turn" + (left == 1 ? "" : "s") + " remaining including this one";
+        }
+        return game.isHappyHourAvailable() ? "available (not used yet)" : "used";
     }
 
     private String formatAverage(Scoreboard score) {
