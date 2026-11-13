@@ -110,7 +110,11 @@ demonstrates that the VIP discount is applied before the Happy Hour discount.
 The defeat script keeps the no-service loss case and now also covers the Host
 choice.
 
-## Video timestamps
+## Video
+
+[Watch the recorded presentation on YouTube](https://youtu.be/r1FSg33gsho)
+
+### Video timestamps
 
 | # | Segment | Timestamp |
 |---|---|---|
