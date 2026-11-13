@@ -109,3 +109,13 @@ final result check while adding Host seating, combos, and Happy Hour. It
 demonstrates that the VIP discount is applied before the Happy Hour discount.
 The defeat script keeps the no-service loss case and now also covers the Host
 choice.
+
+## Video timestamps
+
+| # | Segment | Timestamp |
+|---|---|---|
+| 1 | **Akshith:** Launch the submitted game and introduce the goal and staff roles. Demonstrate C1 progressing from READY on Turn 1 to SERVED on Turn 2 and payment on Turn 4, including eating and automatic cashier payment. Introduce the Critic’s arrival. | **0:00** |
+| 2 | **Zhitong:** Cover Turns 7–12 of the victory replay. Demonstrate the VIP’s patience and discount, activate Happy Hour, and show the Critic’s combo being served and paid for. | **2:35** |
+| 3 | **Shi Jye:** Cover Turns 13–18 of the victory replay. Explain starting C5’s long combo early, show both tables occupied at Turn 16, then demonstrate a table becoming available, the next customer being seated, and the final victory result. | **6:32** |
+| 4 | **Saamya:** Run the defeat scenario using `defeat.txt`. Show customers waiting, losing satisfaction, leaving without paying, and the final defeat result. | **9:23** |
+| 5 | **Zander:** Present the Stage 1, Stage 2, and Stage 3 class diagrams in order. Explain the added customer types in Stage 2, Stage 3 features such as ComboMeal and HappyHour, and how the classes work together. | **11:17** |
