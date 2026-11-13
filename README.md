@@ -109,5 +109,3 @@ final result check while adding Host seating, combos, and Happy Hour. It
 demonstrates that the VIP discount is applied before the Happy Hour discount.
 The defeat script keeps the no-service loss case and now also covers the Host
 choice.
-
-No files were deleted in either transition.
